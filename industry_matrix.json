@@ -1,0 +1,234 @@
+{
+  "_README": [
+    "業界（商材のドメイン）×人口の接地マトリックス。",
+    "さっきの『広告・金融・不動産・自動車・食品・EC』の仕分けを、判断表でなくデータ構造にしたもの。",
+    "各業界について、翼で接地できるか・何を価格の錨にするか・どの属性で狙えるか・何が足りないかを持つ。",
+    "reaction.py はこれを読んで、未接地の業界を使おうとしたら警告できる（将来連携）。",
+    "",
+    "groundable: full=そのまま接地 / partial=一部接地（属性やデータ不足） / none=今の家計消費エンジンでは不可",
+    "anchor_item: 価格受容の基準にする家計調査の品目（なければ null）",
+    "target_attrs: ターゲティングに使える全国ペルソナ属性（現状）",
+    "needs: 本接地にするために足りないもの"
+  ],
+  "as_of": "2026-11-05",
+  "industries": {
+    "食品": {
+      "groundable": "full",
+      "anchor_item": "食料／外食",
+      "target_attrs": [
+        "income_quintile",
+        "household_size",
+        "has_child",
+        "dual_income",
+        "prefecture"
+      ],
+      "example": "ミールキット（外食基準）、食品サブスク",
+      "needs": [],
+      "note": "家計調査に食料・外食があり、そのまま接地。実例は claude/cases/mealkit.md。"
+    },
+    "EC": {
+      "groundable": "partial",
+      "anchor_item": "売る品目に依存（食品ならfull、被服ならfull）",
+      "target_attrs": [
+        "income_quintile",
+        "household_size",
+        "has_child",
+        "dual_income",
+        "prefecture"
+      ],
+      "example": "ECで売る商材の品目を決めれば接地",
+      "needs": [
+        "ECは経路であり品目でない。扱う商材の家計調査品目を指定する必要がある"
+      ],
+      "note": "EC利用率（ec_purchase_ratio）は東京版40属性にあるが全国版には未搭載。"
+    },
+    "不動産": {
+      "groundable": "partial",
+      "anchor_item": "住居（家計調査にあるが賃料・維持費。購入価格は月額でない）",
+      "target_attrs": [
+        "income_quintile",
+        "prefecture",
+        "household_size",
+        "has_child",
+        "housing_type"
+      ],
+      "example": "賃貸・住まいサブスクなら部分的に接地",
+      "needs": [
+        "購入は耐久財で月額接地になじまない",
+        "住居形態の水準は東京暫定（全国値に要差し替え）"
+      ],
+      "note": "住居形態（持ち家/賃貸）を全国版に搭載済み。持ち家/賃貸での狙い分けができる。年収と相関0.38で接地。水準は東京分布の暫定。"
+    },
+    "自動車": {
+      "groundable": "partial",
+      "anchor_item": "交通・通信（自動車関係費を含むが未分離）",
+      "target_attrs": [
+        "income_quintile",
+        "prefecture",
+        "household_size",
+        "car"
+      ],
+      "example": "カーリース・サブスクなら月額接地の余地",
+      "needs": [
+        "交通・通信から自動車関係費を分離",
+        "購入は耐久財で月額接地になじまない"
+      ],
+      "note": "車保有（世帯当たり台数）を全国版に搭載済み。自動車検査登録情報協会2025の県別実データで接地（全国1.009／東京0.405／福井1.670）。県差が最も効く領域で、地方ほど多台数。価格受容は交通費未分離のため方向性のみ。"
+    },
+    "金融": {
+      "groundable": "partial",
+      "anchor_item": null,
+      "target_attrs": [
+        "income_quintile",
+        "household_size",
+        "has_child",
+        "dual_income",
+        "financial_assets"
+      ],
+      "example": "保険・投資サービス",
+      "needs": [
+        "家計調査の消費品目に金融商品の金額がない（価格受容は接地不可）",
+        "金融資産・保険の水準は東京暫定（全国値に要差し替え）"
+      ],
+      "note": "金融資産・保険を全国版に搭載済み。金融資産は年収と相関0.72で接地し、資産保有層の抽出ができる。保険は学資保険を子あり世帯に限定。価格受容の接地は家計調査に金融商品の金額がないため不可で、ターゲティングが主用途。"
+    },
+    "通信": {
+      "groundable": "partial",
+      "anchor_item": "交通・通信（うち通信料）",
+      "target_attrs": [
+        "income_quintile",
+        "household_size",
+        "age_band",
+        "smartphone"
+      ],
+      "example": "格安SIM・固定回線・通信サブスク",
+      "needs": [
+        "家計調査の交通・通信から通信料を分離する",
+        "品目金額をattributes.jsonに登録"
+      ],
+      "note": "通信料は家計調査にあるが交通費と合算。分離すれば月額接地が可能。スマホ種別属性で端末層の狙い分けもできる。"
+    },
+    "アパレル": {
+      "groundable": "partial",
+      "anchor_item": "被服及び履物",
+      "target_attrs": [
+        "income_quintile",
+        "gender",
+        "age_band"
+      ],
+      "example": "衣料サブスク・レンタル・ファッションEC",
+      "needs": [
+        "被服及び履物の金額をattributes.jsonに登録（家計調査に品目あり）"
+      ],
+      "note": "家計調査に被服及び履物の品目があり、登録すれば所得駆動で接地できる。性別・年齢で狙い分け可能。"
+    },
+    "美容・化粧品": {
+      "groundable": "partial",
+      "anchor_item": "理美容用品・理美容サービス",
+      "target_attrs": [
+        "income_quintile",
+        "gender",
+        "age_band"
+      ],
+      "example": "化粧品サブスク・美容サロン・定期便",
+      "needs": [
+        "理美容の金額をattributes.jsonに登録（家計調査に品目あり）"
+      ],
+      "note": "家計調査に理美容用品・理美容サービスがあり接地可能。性別と年齢で需要が大きく割れる領域。"
+    },
+    "旅行・レジャー": {
+      "groundable": "partial",
+      "anchor_item": "教養娯楽（パック旅行費・宿泊料）",
+      "target_attrs": [
+        "income_quintile",
+        "age_band",
+        "has_child"
+      ],
+      "example": "旅行商品・サブスク型宿泊・レジャー会員",
+      "needs": [
+        "パック旅行費・宿泊料の金額をattributes.jsonに登録",
+        "季節性が強く月額接地と相性が悪い点に注意"
+      ],
+      "note": "家計調査の教養娯楽にパック旅行費・宿泊料がある。所得・年齢・子の有無で裁量消費として接地できるが、支出が季節に偏る。"
+    },
+    "外食": {
+      "groundable": "full",
+      "anchor_item": "外食",
+      "target_attrs": [
+        "income_quintile",
+        "household_size",
+        "age_band",
+        "has_child"
+      ],
+      "example": "外食チェーン・サブスク定食・デリバリー",
+      "needs": [],
+      "note": "外食は家計調査にあり、attributes.jsonに五分位別金額を登録済み（ミールキットの錨に使用）。そのまま接地。"
+    },
+    "教育サービス": {
+      "groundable": "full",
+      "anchor_item": "教育（補習教育ほか）",
+      "target_attrs": [
+        "has_child",
+        "age_band",
+        "income_quintile"
+      ],
+      "example": "学習塾・通信教育・習い事サブスク",
+      "needs": [
+        "補習教育の分離（教育費総額は年齢帯で接地済み）"
+      ],
+      "note": "教育費は家計調査にあり、attributes.jsonに年齢帯別金額を登録済み。子あり世帯駆動として接地。学資保険属性とも整合。"
+    },
+    "ヘルスケア・医薬": {
+      "groundable": "full",
+      "anchor_item": "保健医療",
+      "target_attrs": [
+        "age_band",
+        "income_quintile",
+        "insurance"
+      ],
+      "example": "健康食品・医薬品サブスク・オンライン診療",
+      "needs": [],
+      "note": "保健医療は家計調査にあり、attributes.jsonに年齢帯別金額を登録済み。年齢駆動として接地。保険加入属性と併用できる。"
+    },
+    "家電・デジタル機器": {
+      "groundable": "partial",
+      "anchor_item": "家庭用耐久財・教養娯楽用耐久財",
+      "target_attrs": [
+        "income_quintile",
+        "household_size"
+      ],
+      "example": "家電サブスク・レンタル",
+      "needs": [
+        "耐久財は月額接地になじまない",
+        "耐久財金額をattributes.jsonに登録"
+      ],
+      "note": "家計調査に耐久財の品目はあるが、購入は一時的で月額価格受容になじまない。サブスク化すれば部分接地。"
+    },
+    "エンタメ・サブスク": {
+      "groundable": "partial",
+      "anchor_item": "教養娯楽サービス",
+      "target_attrs": [
+        "age_band",
+        "income_quintile",
+        "internet_frequency"
+      ],
+      "example": "動画・音楽配信、ゲーム、各種サブスク",
+      "needs": [
+        "教養娯楽サービスから配信費を分離",
+        "品目金額をattributes.jsonに登録"
+      ],
+      "note": "家計調査の教養娯楽サービスに配信・受信料がある。分離すれば接地。年齢とネット利用頻度で狙い分け可能。"
+    },
+    "広告": {
+      "groundable": "none",
+      "anchor_item": null,
+      "target_attrs": [],
+      "example": "—",
+      "needs": [
+        "家計消費でなくBtoB。家計調査には存在しない",
+        "載せるなら事業所統計・広告市場データという別の土台が必要"
+      ],
+      "note": "今の家計消費エンジンの射程外。別エンジンになる。"
+    }
+  }
+}

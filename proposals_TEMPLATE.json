@@ -1,0 +1,17 @@
+{
+  "_使い方": [
+    "新しい施策案を自分で足すためのひな形。このファイルをコピーして編集する。",
+    "cross_item は家計調査の品目名（attributes.jsonのmetric表にあるもの）にする。",
+    "接地できる品目： 外食 / 教養娯楽 / 被服及び履物 / 交通・通信 / 家具・家事用品 / こづかい / 交際費（所得駆動）、教育（子の有無）。",
+    "price_monthly は想定月額（円）。1回いくらの施策は想定利用頻度を掛けて月額に直す。",
+    "benefit_fit は既定1.0のまま。動かすと購入意向が『接地＋方向性』になり確信度が下がる。",
+    "実行： python reaction.py run --proposals このファイル.json",
+    "ターゲティング： python reaction.py target --proposals このファイル.json --by income_quintile"
+  ],
+  "category": "（表示用の呼び名）",
+  "cross_item": "外食",
+  "proposals": [
+    {"id":"X1","name":"案の名前","price_monthly":5000,"benefit":"この案が与える便益","message":"訴求メッセージ","channel":"提供チャネル","benefit_fit":1.0},
+    {"id":"X2","name":"もう一つの案","price_monthly":12000,"benefit":"別の便益","message":"別の訴求","channel":"別チャネル","benefit_fit":1.0}
+  ]
+}

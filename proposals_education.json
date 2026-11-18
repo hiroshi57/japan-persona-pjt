@@ -1,0 +1,8 @@
+{
+  "category": "教育",
+  "cross_item": "教育",
+  "proposals": [
+    {"id":"E1","name":"オンライン学習 定額","price_monthly":8000,"benefit":"家庭学習を定額で","message":"月8,000円で学び放題","channel":"学習アプリ","benefit_fit":1.0},
+    {"id":"E2","name":"個別指導プレミアム","price_monthly":25000,"benefit":"手厚い個別指導","message":"伴走する個別指導","channel":"塾","benefit_fit":1.0}
+  ]
+}

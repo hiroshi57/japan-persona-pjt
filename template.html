@@ -1,0 +1,712 @@
+<title>ペルソナ・スクリーニング</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- 4手法調査スタジオ版（アンケート→インタビュー→観察→エスノ、信頼度の勾配） -->
+<style>
+/* レイアウト：上=進行ステップ／左=条件(プリセット・検索・折りたたみ)／右上=推定規模と構成+偏り／右下=対象者・比較・壁打ち */
+:root{
+  --bg:#eef2ee; --panel:#ffffff; --panel2:#f6f9f5; --ink:#19211e; --muted:#5d6a63; --faint:#8a968f; --line:#dce2db;
+  --accent:#2f7161; --accent-2:#3f8f7c; --accent-weak:#e3efe9; --ground:#2f7161; --hyp:#a8661a; --hyp-weak:#f6ecda;
+  --chip:#eceff0; --chip-on:#2f7161; --bar:#cfe4db; --bar-fill:#2f7161; --base-mark:#8a968f;
+  --male:#3a6ea5; --female:#b5567f; --shadow:0 1px 2px rgba(20,40,30,.05);
+  --f-head:"Space Grotesk",system-ui,sans-serif;
+  --f-body:"Inter","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1c18; --panel:#16211d; --panel2:#131e1a; --ink:#e7ede9; --muted:#95a49c; --faint:#6f7d75; --line:#263630;
+  --accent:#5cbaa4; --accent-2:#6ec8b2; --accent-weak:#1c2e28; --ground:#5cbaa4; --hyp:#d99a4e; --hyp-weak:#2a2417;
+  --chip:#1e2d28; --chip-on:#5cbaa4; --bar:#223a33; --bar-fill:#5cbaa4; --base-mark:#6f7d75;
+  --male:#6ea0d8; --female:#e18bb0; --shadow:none; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1c18; --panel:#16211d; --panel2:#131e1a; --ink:#e7ede9; --muted:#95a49c; --faint:#6f7d75; --line:#263630;
+  --accent:#5cbaa4; --accent-2:#6ec8b2; --accent-weak:#1c2e28; --ground:#5cbaa4; --hyp:#d99a4e; --hyp-weak:#2a2417;
+  --chip:#1e2d28; --chip-on:#5cbaa4; --bar:#223a33; --bar-fill:#5cbaa4; --base-mark:#6f7d75;
+  --male:#6ea0d8; --female:#e18bb0; --shadow:none; color-scheme:dark;
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.5}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:4px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px;max-width:1300px;margin:0 auto}
+h1{font-family:var(--f-head);font-size:1.2rem;margin:0;letter-spacing:.01em}
+.sub{color:var(--muted);font-size:.78rem;margin:.2rem 0 0}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.steps{display:flex;list-style:none;margin:0;padding:0;gap:6px;flex-wrap:wrap}
+.steps li{font-size:.76rem;font-weight:600;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;transition:all .15s}
+.steps li[data-on="done"]{color:var(--accent);border-color:var(--accent-weak);background:var(--accent-weak)}
+.steps li[data-on="now"]{color:#fff;background:var(--accent);border-color:var(--accent)}
+.help{background:var(--accent-weak);border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.8rem;color:var(--ground);display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.help b{font-weight:700}
+.help button{background:none;border:none;color:var(--ground);cursor:pointer;font-weight:700;font-size:.9rem}
+.grid{display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.col-left{position:sticky;top:env(safe-area-inset-top,0px);max-height:calc(100vh - 16px);overflow:auto}
+@media(max-width:880px){.col-left{position:static;max-height:none}}
+.count-box{display:flex;align-items:baseline;gap:8px}
+.count{font-family:var(--f-head);font-size:2.2rem;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.05}
+.count-lbl{color:var(--muted);font-size:.8rem;cursor:help;border-bottom:1px dotted var(--faint)}
+.count-sub{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.45}
+.funnel{margin:8px 0 2px;height:6px;border-radius:3px;background:var(--bar);overflow:hidden}
+.funnel>i{display:block;height:100%;background:var(--bar-fill);border-radius:3px;transition:width .25s}
+.skew{font-size:.73rem;color:var(--ground);background:var(--accent-weak);border-radius:8px;padding:6px 9px;margin-top:8px}
+.skew.none{display:none}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0 2px}
+.sel{font-size:.74rem;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.linkbtn{font-size:.73rem;color:var(--accent);background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer}
+.active-cond{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 2px}
+.cond{font-size:.72rem;background:var(--accent-weak);color:var(--ground);border-radius:999px;padding:2px 8px 2px 9px;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.cond.pc{background:var(--hyp-weak);color:var(--hyp)}
+.cond b{font-weight:600}.cond .x{font-weight:700;opacity:.7}
+.active-empty{font-size:.72rem;color:var(--muted);margin:8px 0 2px}
+.fgroup{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.fg-title{font-size:.73rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.fg-title .l{display:flex;align-items:center;gap:7px}
+.fg-title .cnt{background:var(--accent);color:#fff;border-radius:999px;font-size:.62rem;padding:0 6px;font-weight:700;min-width:16px;text-align:center}
+.fg-title .cnt[hidden]{display:none}
+.fg-title .caret{transition:transform .15s;color:var(--faint)}
+.fgroup.closed .caret{transform:rotate(-90deg)}
+.fgroup.closed .fg-body{display:none}
+.fg-body{margin-top:8px}
+.field{margin-bottom:9px}
+.field>.flab{display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:var(--muted);margin-bottom:3px}
+.field .facts{display:flex;gap:7px}
+.field .facts button{font-size:.68rem;color:var(--accent);background:none;border:none;cursor:pointer;padding:0}
+.fsearch{width:100%;font-size:.75rem;border:1px solid var(--line);border-radius:7px;padding:4px 7px;margin-bottom:5px;background:var(--panel);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.regionhdr{font-size:.66rem;color:var(--faint);width:100%;margin:4px 0 1px;font-weight:600}
+.chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer;user-select:none}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:#fff;border-color:var(--chip-on)}
+.chip[hidden]{display:none}
+.chip small{opacity:.7;margin-left:3px}
+.psy{display:flex;align-items:center;gap:7px;font-size:.8rem;padding:3px 0;cursor:pointer}
+.psy input{margin:0;width:15px;height:15px;accent-color:var(--accent)}
+.badge{font-size:.6rem;padding:1px 5px;border-radius:4px;font-weight:700;white-space:nowrap}
+.b-ground{background:var(--accent-weak);color:var(--ground)}.b-hyp{background:var(--hyp-weak);color:var(--hyp)}
+.psy .txt{flex:1;min-width:0}
+.legend{border-top:1px solid var(--line);margin-top:11px;padding-top:10px;font-size:.72rem;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.compo{margin-bottom:14px}
+.compo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.compo-head h2{font-family:var(--f-head);font-size:.98rem;margin:0}
+.compo-head .ctrls{display:flex;gap:6px;flex-wrap:wrap}
+.compo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
+@media(max-width:640px){.compo-grid{grid-template-columns:1fr}}
+.dist h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 6px;display:flex;justify-content:space-between}
+.bar-row{display:grid;grid-template-columns:62px 1fr 50px;align-items:center;gap:6px;margin-bottom:3px;font-size:.73rem}
+.bar-row .bl{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{height:10px;background:var(--bar);border-radius:5px;overflow:visible;position:relative}
+.bar-track>i{display:block;height:100%;background:var(--bar-fill);border-radius:5px;transition:width .25s}
+.bar-track .base{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--base-mark);border-radius:1px}
+.bar-row .bv{text-align:right;font-variant-numeric:tabular-nums}
+.bar-row .bv small{color:var(--faint)}
+.studio{margin-bottom:12px}
+.method-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+@media(max-width:560px){.method-tabs{grid-template-columns:repeat(2,1fr)}}
+.mtab{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 7px;cursor:pointer;text-align:left;transition:all .12s}
+.mtab[aria-selected="true"]{border-color:var(--accent);background:var(--accent-weak)}
+.mtab .mt-d{font-size:.6rem;color:var(--faint);font-weight:700;letter-spacing:.04em}
+.mtab .mt-l{font-size:.8rem;font-weight:600;color:var(--ink);margin:2px 0 4px}
+.mtab .mt-t{font-size:.58rem;padding:1px 5px;border-radius:4px;font-weight:700;white-space:nowrap}
+.t-g{background:var(--accent-weak);color:var(--ground)}.t-h{background:var(--hyp-weak);color:var(--hyp)}
+.method-meta{font-size:.76rem;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:10px;display:flex;flex-direction:column;gap:7px}
+.method-meta .mm-desc{color:var(--ink)}
+.ggrad{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 35%,var(--hyp) 100%);position:relative;margin-top:2px}
+.ggrad .gdot{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--ink);transform:translateX(-50%);transition:left .2s}
+.gax{display:flex;justify-content:space-between;font-size:.62rem;color:var(--faint)}
+.method-panel{margin-top:2px}
+.mpane{border:1px solid var(--line);border-radius:11px;padding:13px;background:var(--panel)}
+.mpane>h3{font-family:var(--f-head);font-size:.94rem;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.qbuild{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end;margin:10px 0}
+.qbuild textarea{flex:1;min-width:170px;font-size:.84rem;border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--panel);color:var(--ink);font-family:inherit;resize:vertical;min-height:42px}
+.svy-res{display:flex;flex-direction:column;gap:14px}
+.svy-q{font-weight:600;font-size:.85rem;margin-bottom:7px}
+.svy-opt{display:grid;grid-template-columns:140px 1fr 44px;gap:7px;align-items:center;font-size:.76rem;margin-bottom:4px}
+.svy-opt .bl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.svy-opt .bar{height:12px;background:var(--bar);border-radius:6px;overflow:hidden}
+.svy-opt .bar>i{display:block;height:100%;background:var(--bar-fill);transition:width .3s}
+.svy-opt .bv{text-align:right;font-variant-numeric:tabular-nums}
+.svy-ground{font-size:.73rem;color:var(--ground);background:var(--accent-weak);border-radius:7px;padding:6px 9px;margin-top:6px}
+.obs-card,.eth-card{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--panel2);margin-bottom:9px}
+.obs-card .nm,.eth-card .nm{font-weight:600;font-size:.83rem;margin-bottom:6px;display:flex;gap:7px;align-items:center}
+.obs-steps,.eth-body{font-size:.81rem;line-height:1.7;white-space:pre-wrap}
+.gap-flag{font-size:.75rem;color:var(--hyp);background:var(--hyp-weak);border-radius:7px;padding:6px 9px;margin-top:7px}
+.gap-flag b{font-weight:700}
+.sub-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:11px}
+.sub-seg button{font-size:.78rem;padding:6px 13px;border:none;background:var(--panel);color:var(--ink);cursor:pointer}
+.sub-seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.warn-strong{border:1px solid var(--hyp);background:var(--hyp-weak);color:var(--hyp);border-radius:8px;padding:8px 11px;font-size:.75rem;margin-bottom:11px;line-height:1.5}
+.mode-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{font-size:.84rem;padding:8px 16px;border:none;background:var(--panel);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.mode-hint{font-size:.74rem;color:var(--muted)}
+.mode-hint.warn{color:var(--hyp)}
+.hyp-warn{background:var(--hyp-weak);color:var(--hyp);border:1px solid var(--hyp);border-radius:9px;padding:8px 11px;font-size:.76rem;margin-bottom:12px;display:flex;gap:7px;align-items:flex-start}
+.hyp-warn b{font-weight:700}
+.tray{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tray .t{font-size:.72rem;background:var(--accent);color:#fff;border-radius:999px;padding:2px 7px 2px 9px;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+.tray .t .x{opacity:.8;font-weight:700}
+.listtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between;margin-bottom:9px}
+.listtools .who b{font-family:var(--f-head);color:var(--accent);font-size:1rem}
+.listtools .r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.search{font-size:.76rem;border:1px solid var(--line);border-radius:8px;padding:5px 9px;background:var(--panel);color:var(--ink);width:120px}
+.btn{font-size:.76rem;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:10px}
+.cards.compact{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.cards.compact .meta2,.cards.compact details{display:none}
+.card{border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:var(--panel);position:relative;cursor:pointer;transition:border-color .12s}
+.card:hover{border-color:var(--accent-2)}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset;background:var(--panel2)}
+.card .chk{position:absolute;top:9px;right:9px;width:19px;height:19px;accent-color:var(--accent);cursor:pointer}
+.card .hd{display:flex;gap:8px;align-items:center;padding-right:26px}
+.ava{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:.8rem;font-weight:700;font-family:var(--f-head)}
+.card .nm{font-weight:600;font-size:.92rem}
+.card .meta{font-size:.72rem;color:var(--muted);margin-top:4px}
+.card .tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px}
+.tag{font-size:.63rem;padding:1px 6px;border-radius:5px;background:var(--chip);color:var(--muted)}
+.tag.p{background:var(--hyp-weak);color:var(--hyp)}.tag.g{background:var(--accent-weak);color:var(--ground)}
+.more{color:var(--muted);font-size:.76rem;padding:9px 2px;display:flex;gap:12px;align-items:center}
+.more .btn{padding:4px 10px}
+details.det{margin-top:7px}
+details.det summary{font-size:.72rem;color:var(--accent);cursor:pointer}
+details.det .nar{font-size:.75rem;color:var(--muted);margin-top:4px;line-height:1.55}
+.compare{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;overflow-x:auto}
+.compare h2{font-family:var(--f-head);font-size:.95rem;margin:0 0 8px}
+.ctable{border-collapse:collapse;font-size:.74rem;min-width:100%}
+.ctable th,.ctable td{border:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
+.ctable th{background:var(--panel2);position:sticky;left:0;color:var(--muted);font-weight:600}
+.ctable thead td{font-weight:600;color:var(--ink)}
+.chat{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.chat .ch-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.chat h2{font-family:var(--f-head);font-size:1rem;margin:0}
+.chat .ch-acts{display:flex;gap:6px}
+.who2{font-size:.75rem;color:var(--muted);margin:4px 0 8px}
+.presetq{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.presetq button{font-size:.73rem;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer}
+.transcript{display:flex;flex-direction:column;gap:14px;margin-bottom:12px}
+.qa .q{font-weight:600;font-size:.88rem;margin-bottom:7px}
+.ans{display:flex;flex-direction:column;gap:7px}
+.bubble{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.83rem}
+.bubble.load{color:var(--faint);font-style:italic}
+.bubble .bn{font-weight:600;font-size:.74rem;color:var(--accent);margin-bottom:3px}
+.bubble .bn small{color:var(--muted);font-weight:400}
+.ask{display:flex;gap:8px;align-items:flex-end}
+.ask textarea{flex:1;min-width:0;font-size:.86rem;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--panel);color:var(--ink);resize:vertical;min-height:44px;font-family:inherit}
+.note{font-size:.72rem;color:var(--muted);margin-top:7px}
+.empty{color:var(--muted);font-size:.84rem;padding:18px 2px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);font-size:.8rem;padding:8px 14px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+#toast.show{opacity:.95}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>ペルソナ・スクリーニング</h1>
+      <p class="sub">全国統計から都度生成する仮想ペルソナを、基本×詳細×心理で絞り、壁打ち相手を選ぶ</p></div>
+    <ol class="steps" id="steps">
+      <li data-step="1" data-go="col-left">① 条件で絞る</li>
+      <li data-step="2" data-go="cards">② 対象者を選ぶ</li>
+      <li data-step="3" data-go="chat">③ 壁打ち／GI</li>
+    </ol>
+  </header>
+  <div class="help" id="help" hidden>
+    <div><b>使い方：</b>左で条件を絞ると、条件に合う人がその場で生成されます（どんなに絞っても出ます）。右で対象者を選び、壁打ちかGIを選んで対話します。上の数字はその条件の全国推定規模です。</div>
+    <button id="help-x" aria-label="閉じる">×</button>
+  </div>
+  <div class="grid">
+    <aside class="panel col-left" id="col-left">
+      <div class="count-box"><span class="count" id="count">—</span>
+        <span class="count-lbl" id="count-unit" title="全国20歳以上 約1.05億人に、生成サンプルでの該当率を掛けた推定値です">推定規模 ⓘ</span></div>
+      <div class="funnel"><i id="funnel-bar" style="width:100%"></i></div>
+      <div class="count-sub" id="count-sub"></div>
+      <div class="skew none" id="skew"></div>
+      <div class="toolbar">
+        <select class="sel" id="preset"><option value="">プリセットを選ぶ…</option></select>
+        <button class="linkbtn" id="clear-all">全条件クリア</button>
+        <button class="linkbtn" id="copy-seg">条件と構成をコピー</button>
+      </div>
+      <div id="active-cond"></div>
+      <div class="fgroup" data-g="basic"><p class="fg-title"><span class="l"><span class="caret">▾</span>基本情報 <span class="cnt" hidden></span></span><button class="linkbtn" data-reset="basic" style="padding:0;border:none">クリア</button></p><div class="fg-body" id="f-basic"></div></div>
+      <div class="fgroup" data-g="detail"><p class="fg-title"><span class="l"><span class="caret">▾</span>詳細情報 <span class="cnt" hidden></span></span><button class="linkbtn" data-reset="detail" style="padding:0;border:none">クリア</button></p><div class="fg-body" id="f-detail"></div></div>
+      <div class="fgroup" data-g="psych"><p class="fg-title"><span class="l"><span class="caret">▾</span>心理・行動 <span class="cnt" hidden></span></span><button class="linkbtn" data-reset="psych" style="padding:0;border:none">クリア</button></p><div class="fg-body" id="f-psych"></div></div>
+      <div class="legend">
+        <span><span class="badge b-ground">接地</span> 全国統計で裏づけ</span>
+        <span><span class="badge b-hyp">方向性</span> 統計なし・仮説段階（本調査で確認）</span>
+        <span style="margin-top:3px">構成バーの縦線 ｜ は全国平均。棒がそれより右＝その層に多い。</span>
+      </div>
+    </aside>
+    <section class="col-right">
+      <div class="panel compo">
+        <div class="compo-head"><h2>該当セグメントの構成</h2>
+          <div class="ctrls"><button class="linkbtn" id="regen">別の人を生成</button></div></div>
+        <div class="compo-grid" id="compo"></div>
+      </div>
+      <div class="studio">
+        <div class="method-tabs" id="method-tabs" role="tablist" aria-label="調査手法"></div>
+        <div class="method-meta" id="method-meta"></div>
+      </div>
+      <div id="hyp-warn" class="hyp-warn" hidden></div>
+      <div class="tray" id="tray"></div>
+      <div class="listtools">
+        <div class="who"><b id="sel-count">0</b> 名 選択中</div>
+        <div class="r">
+          <input class="search" id="name-search" placeholder="氏名で検索" aria-label="氏名で検索">
+          <select class="sel" id="sort"><option value="">並び：標準</option><option value="inc_desc">年収が高い順</option><option value="inc_asc">年収が低い順</option><option value="age_asc">年齢が若い順</option><option value="age_desc">年齢が高い順</option><option value="name">氏名順</option></select>
+          <button class="btn" id="density">コンパクト</button>
+          <button class="btn" id="sel-all">表示中を全選択</button>
+          <button class="btn" id="sel-none">全解除</button>
+        </div>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="more" id="more"></div>
+      <div class="compare" id="compare" hidden></div>
+      <div class="method-panel" id="method-panel">
+        <div class="mpane" id="pane-survey" hidden>
+          <h3>アンケート <span class="mt-t t-g">接地が効く</span></h3>
+          <p class="note">多数の対象者に同じ設問をぶつけ、回答の分布を見ます。価格の設問は年収層の傾向で裏づけます。</p>
+          <div class="qbuild">
+            <textarea id="svy-q" placeholder="設問（例：この新しいミールキットは月1万円の価値があると思いますか）"></textarea>
+            <select class="sel" id="svy-type"><option value="scale5">5段階（そう思う〜思わない）</option><option value="price">価格感（高い／妥当／安い）</option><option value="intent">購入意向（買う／検討／買わない）</option><option value="yn">はい／いいえ</option></select>
+            <button class="btn primary" id="svy-run">実施</button>
+          </div>
+          <div class="qbuild" style="margin-top:0">
+            <label style="font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap">価格の裏づけ（任意）：
+            <select class="sel" id="svy-item"></select> に
+            <input class="search" id="svy-amount" type="number" min="0" placeholder="月額・価格(円)" style="width:130px"> 円</label>
+          </div>
+          <div class="svy-res" id="svy-res"></div>
+          <p class="note" id="svy-note"></p>
+        </div>
+        <div class="mpane" id="pane-interview" hidden>
+          <div class="sub-seg" role="group" aria-label="インタビュー形式"><button id="m-hearing" aria-pressed="true">1対1（壁打ち）</button><button id="m-gi" aria-pressed="false">グループ</button></div>
+          <span class="mode-hint" id="mode-hint" style="display:block;margin-bottom:8px"></span>
+          <div class="chat" id="chat">
+            <div class="ch-head"><h3 id="chat-title" style="font-family:var(--f-head);font-size:.94rem;margin:0">インタビュー</h3><div class="ch-acts"><button class="btn" id="ch-copy">会話をコピー</button><button class="btn" id="ch-clear">会話をクリア</button></div></div>
+            <div class="who2" id="chat-who"></div>
+            <div class="presetq" id="presetq"></div>
+            <div class="transcript" id="transcript"></div>
+            <div class="ask"><textarea id="q" placeholder="理由を深掘りする（例：なぜ買うのをやめたのですか）"></textarea><button class="btn primary" id="send">送信</button></div>
+            <p class="note" id="chat-note"></p>
+          </div>
+        </div>
+        <div class="mpane" id="pane-observation" hidden>
+          <h3>観察・行動観察 <span class="mt-t t-h">仮説・要実査</span></h3>
+          <p class="note">発言ではなく、接地した行動データ（EC利用・頻度・カゴ落ち等）から行動の流れを再構成します。インタビュー済みなら、発言と行動のズレも示します。</p>
+          <div class="qbuild">
+            <textarea id="obs-scene" placeholder="観察する場面（例：スマホで夕食用のミールキットを探して買うまで）"></textarea>
+            <button class="btn primary" id="obs-run">観察する</button>
+          </div>
+          <div id="obs-res"></div>
+          <p class="note" id="obs-note"></p>
+        </div>
+        <div class="mpane" id="pane-ethnography" hidden>
+          <div class="warn-strong">最も深く、最も仮説的な層です。AIが最も苦手とする領域で、実地調査の代わりにはなりません。本調査前の仮説出し専用としてお使いください。</div>
+          <h3>エスノグラフィー <span class="mt-t t-h">仮説専用</span></h3>
+          <p class="note">生活の文脈に、このテーマ／製品がどこで現れ、どこで現れないかを記述します。</p>
+          <div class="qbuild">
+            <textarea id="eth-theme" placeholder="入り込むテーマ（例：平日夕方の食事づくりと家族の時間）"></textarea>
+            <button class="btn primary" id="eth-run">生活に入り込む</button>
+          </div>
+          <div id="eth-res"></div>
+          <p class="note" id="eth-note"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script type="application/json" id="GENSPEC">__GENSPEC__</script>
+<script>__GENJS__</script>
+<script>
+const G=JSON.parse(document.getElementById("GENSPEC").textContent);
+const PG=window.PersonaGen;
+const ADULTS=104600000, BASE_N=6000, DISP_N=300;
+let seed=20261117, basePool=[], matches=[], shown=[], showCap=60, natCache={};
+const LS="persona_screen_v4";
+const BASIC=["性別","年齢帯","年収五分位","子","世帯人員","学歴","業種","都道府県"];
+const DETAIL=["ペット","車","金融資産","EC","運転免許","住居","共働き"];
+const FLABEL={性別:"性別",年齢帯:"年代",年収五分位:"年収層",子:"子",世帯人員:"世帯人数",学歴:"学歴",業種:"業種",都道府県:"地域",
+  ペット:"ペット",車:"車",金融資産:"資産",EC:"EC",運転免許:"免許",住居:"住居",共働き:"共働き"};
+const ORD={年収五分位:["I","II","III","IV","V"],年齢帯:G.age_order,世帯人員:["1","2","3","4","5+"],金融資産:["なし",...Object.keys(G.financial_dist)],車:["0","1","2","3+"]};
+const REGION={北海道:["北海道"],東北:["青森県","岩手県","宮城県","秋田県","山形県","福島県"],
+  関東:["茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県"],
+  中部:["新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県"],
+  近畿:["三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県"],
+  中国:["鳥取県","島根県","岡山県","広島県","山口県"],四国:["徳島県","香川県","愛媛県","高知県"],
+  九州沖縄:["福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"]};
+const PREF_REGION={};for(const r in REGION)REGION[r].forEach(p=>PREF_REGION[p]=r);
+const PRESETS={
+  "子育て・共働き世帯":{basic:{子:["あり"]},detail:{共働き:["共働き"]}},
+  "シニア（60代以上）":{basic:{年齢帯:["60-69","70+"]},detail:{}},
+  "高所得層（年収IV・V）":{basic:{年収五分位:["IV","V"]},detail:{}},
+  "若年単身":{basic:{年齢帯:["20-29","30-39"],世帯人員:["1"]},detail:{}},
+  "女性30〜40代":{basic:{性別:["女性"],年齢帯:["30-39","40-49"]},detail:{}},
+  "車保有のクルマ生活":{basic:{},detail:{車:["1","2","3+"]}},
+  "デジタル不慣れ層":{basic:{},detail:{ネット頻度:["月数回","ほぼ使わない"]}},
+};
+const PRESETQ=["価格は高いと感じますか？","この商品を使ってみたいですか？","今いちばんの不満は何ですか？","他社・既存品と比べてどうですか？","どんな時に必要と感じますか？"];
+const S={basic:{},detail:{},psych:new Set(),method:"interview",mode:"壁打ち",selected:new Set(),transcript:[],sort:"",q:"",compact:false,open:{basic:true,detail:true,psych:true},svyRes:null,obsRes:{},ethRes:{}};
+const METHODS=[
+ {id:"survey",n:"浅←",label:"アンケート",tier:"接地",tcls:"t-g",desc:"多数に同じ設問。分布と傾向を定量で掴む。言語化できる範囲が対象。",pos:8},
+ {id:"interview",n:"",label:"インタビュー",tier:"方向性",tcls:"t-h",desc:"一人称で理由を深掘り。語られる理由は本音とは限らない点に注意。",pos:37},
+ {id:"observation",n:"",label:"観察・行動",tier:"再構成",tcls:"t-h",desc:"接地した行動データから行動の流れを再構成し、発言と行動のズレを検出。",pos:68},
+ {id:"ethnography",n:"→深",label:"エスノ",tier:"仮説のみ",tcls:"t-h",desc:"生活文脈への入り込み。最も深いが最も仮説的。実査の代替にはならない。",pos:95},
+];
+
+function ls(k,v){try{if(v===undefined){const s=JSON.parse(localStorage.getItem(LS)||"{}");return s[k]}const s=JSON.parse(localStorage.getItem(LS)||"{}");s[k]=v;localStorage.setItem(LS,JSON.stringify(s))}catch(e){}}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1600)}
+function allItems(){return G.psych.derived.concat(G.psych.probabilistic)}
+
+function valuesOf(field){switch(field){
+  case"性別":return Object.keys(G.gender_dist);
+  case"年齢帯":return G.age_order.slice();
+  case"年収五分位":return["I","II","III","IV","V"];
+  case"子":return["あり","なし"];
+  case"世帯人員":return["1","2","3","4","5+"];
+  case"学歴":return G.edu_order.filter(k=>k in G.education_dist);
+  case"業種":return Object.keys(G.industry_dist).concat(["非該当"]);
+  case"都道府県":return Object.keys(G.pref_weights).sort((a,b)=>G.pref_weights[b]-G.pref_weights[a]);
+  case"ペット":return Object.keys(G.pet_by_size["2"]);
+  case"車":return["0","1","2","3+"];
+  case"金融資産":return["なし",...Object.keys(G.financial_dist)];
+  case"EC":return Object.keys(G.ec_dist);
+  case"運転免許":return["あり","なし"];
+  case"住居":return Object.keys(G.housing_dist);
+  case"共働き":return["共働き","専業中心","不明"];
+}return[]}
+function chipText(field,v){if(field==="年収五分位")return v+' <small>'+G.income_labels[v]+'</small>';if(field==="世帯人員")return v+'人';if(field==="車")return v+'台';return v}
+
+function chipRow(field,group){
+  const wrap=document.createElement("div");wrap.className="field";wrap.dataset.field=field;
+  const vals=valuesOf(field);
+  const lab=document.createElement("div");lab.className="flab";lab.innerHTML=`<span>${FLABEL[field]||field}</span>`;
+  if(vals.length>=8){const a=document.createElement("span");a.className="facts";
+    a.innerHTML='<button data-a="all">全</button><button data-a="none">解除</button>';
+    a.querySelector('[data-a="all"]').onclick=()=>{S[group][field]=new Set(vals);syncChips(group,field);applyFilters()};
+    a.querySelector('[data-a="none"]').onclick=()=>{delete S[group][field];syncChips(group,field);applyFilters()};
+    lab.appendChild(a)}
+  wrap.appendChild(lab);
+  if(field==="都道府県"||field==="業種"){const se=document.createElement("input");se.className="fsearch";se.placeholder=(field==="都道府県"?"地域名":"業種名")+"で絞り込み";
+    se.oninput=()=>{const q=se.value.trim();wrap.querySelectorAll(".chip").forEach(c=>{c.hidden=q&&!c.dataset.v.includes(q)});
+      wrap.querySelectorAll(".regionhdr").forEach(h=>{h.hidden=!!q})};wrap.appendChild(se)}
+  const box=document.createElement("div");box.className="chips";box.dataset.field=group+":"+field;
+  const mk=v=>{const b=document.createElement("button");b.className="chip";b.innerHTML=chipText(field,v);b.setAttribute("aria-pressed","false");b.dataset.v=v;
+    b.onclick=()=>{const set=S[group][field]||(S[group][field]=new Set());set.has(v)?set.delete(v):set.add(v);if(!set.size)delete S[group][field];syncChips(group,field);applyFilters()};return b};
+  if(field==="都道府県"){for(const r in REGION){const h=document.createElement("span");h.className="regionhdr";h.textContent=r;box.appendChild(h);
+      REGION[r].forEach(v=>box.appendChild(mk(v)))}}
+  else vals.forEach(v=>box.appendChild(mk(v)));
+  wrap.appendChild(box);return wrap}
+function syncChips(group,field){const box=document.querySelector(`.chips[data-field="${group}:${field}"]`);if(!box)return;
+  const set=S[group][field];box.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",!!(set&&set.has(c.dataset.v))))}
+function syncAllChips(){for(const g of["basic","detail"])for(const f of(g==="basic"?BASIC:DETAIL))syncChips(g,f)}
+
+function buildFilters(){
+  const fb=document.getElementById("f-basic");BASIC.forEach(f=>fb.appendChild(chipRow(f,"basic")));
+  const fd=document.getElementById("f-detail");DETAIL.forEach(f=>fd.appendChild(chipRow(f,"detail")));
+  const fp=document.getElementById("f-psych");
+  allItems().forEach(it=>{const row=document.createElement("label");row.className="psy";
+    const cb=document.createElement("input");cb.type="checkbox";cb.dataset.id=it.id;
+    cb.onchange=()=>{cb.checked?S.psych.add(it.id):S.psych.delete(it.id);applyFilters()};
+    const tx=document.createElement("span");tx.className="txt";tx.textContent=it.label;tx.title=it.tier==="接地"?"接地済み属性から確定":"統計なし・条件付き確率で付与（仮説）";
+    const bd=document.createElement("span");bd.className="badge "+(it.tier==="接地"?"b-ground":"b-hyp");bd.textContent=it.tier==="接地"?"接地":"方向性";
+    row.append(cb,tx,bd);fp.appendChild(row)});
+  const ps=document.getElementById("preset");Object.keys(PRESETS).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=k;ps.appendChild(o)});
+  const si=document.getElementById("svy-item");Object.keys(G.price_benchmark.item_share).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=k;si.appendChild(o)});
+  const pq=document.getElementById("presetq");PRESETQ.forEach(q=>{const b=document.createElement("button");b.textContent=q;b.onclick=()=>{document.getElementById("q").value=q;ask()};pq.appendChild(b)});
+}
+
+function matchP(p){for(const g of["basic","detail"])for(const f in S[g]){if(!S[g][f].has(p[g][f]))return false}
+  for(const id of S.psych)if(!p.psych[id])return false;return true}
+function psychHypActive(){return[...S.psych].some(id=>G.psych.probabilistic.find(i=>i.id===id))}
+function itemLabel(id){const a=allItems().find(i=>i.id===id);return a?a.label:id}
+function isHyp(id){return!!G.psych.probabilistic.find(i=>i.id===id)}
+function activeCount(g){return g==="psych"?S.psych.size:Object.keys(S[g]).length}
+
+function applyFilters(){saveState();matches=PG.genMatching(G,{basic:S.basic,detail:S.detail},S.psych,DISP_N,seed);
+  matches.forEach((p,i)=>p.id=i);S.selected.clear();showCap=60;render()}
+
+function natDist(field){if(natCache[field])return natCache[field];const c={};basePool.forEach(p=>{c[p.basic[field]]=(c[p.basic[field]]||0)+1});
+  const t=basePool.length;const o={};for(const k in c)o[k]=c[k]/t;natCache[field]=o;return o}
+function segDist(list,field){const c={};list.forEach(p=>{c[p.basic[field]]=(c[p.basic[field]]||0)+1});const t=list.length||1;const o={};for(const k in c)o[k]=c[k]/t;return o}
+
+function fmtMan(n){if(n>=1e8)return(n/1e8).toFixed(2).replace(/\.?0+$/,"")+"億人";if(n>=1e4)return Math.round(n/1e4).toLocaleString()+"万人";return Math.round(n).toLocaleString()+"人"}
+
+function estimateShare(){
+  let m=0;for(const p of basePool)if(matchP(p))m++;
+  if(m>=12)return {share:m/basePool.length,mode:"実測"};
+  const floor=1/basePool.length;let prod=1,cond=0;
+  for(const g of["basic","detail"])for(const f in S[g]){cond++;let c=0;for(const p of basePool)if(S[g][f].has(p[g][f]))c++;prod*=Math.max(c/basePool.length,floor)}
+  for(const id of S.psych){cond++;let c=0;for(const p of basePool)if(p.psych[id])c++;prod*=Math.max(c/basePool.length,floor)}
+  return {share:cond?prod:1,mode:"概算（各条件を独立とみなした推定）"};
+}
+function render(){
+  const est=estimateShare(),share=est.share,estPop=share*ADULTS;
+  const cEl=document.getElementById("count"),sEl=document.getElementById("count-sub");
+  if(estPop<1){cEl.textContent="ほぼ0人";sEl.textContent=`この条件を全て満たす人は全国でもごく少数の概算です。該当者を${matches.length}名、分布から生成しました。`}
+  else{cEl.textContent="約 "+fmtMan(estPop);const pc=share*100;sEl.textContent=`全国20歳以上の約${pc<0.01?"0.01未満":pc<1?pc.toFixed(2):pc.toFixed(1)}%｜${est.mode}｜該当者を${matches.length}名生成`}
+  document.getElementById("funnel-bar").style.width=Math.max(0.5,Math.min(100,share*100))+"%";
+  renderSkew(matches);renderActive();renderGroupCounts();renderCompo(matches);
+  const rec=S.mode==="壁打ち"?[1,5]:[6,8];const sc=S.selected.size;
+  const mh=document.getElementById("mode-hint");
+  mh.textContent=S.mode==="壁打ち"?`1〜5名を選び深掘り（選択${sc}）`:`6〜8名で意見の幅を見る（選択${sc}）`;
+  mh.className="mode-hint"+((sc>rec[1])?" warn":"");
+  const w=document.getElementById("hyp-warn");
+  if(psychHypActive()){w.hidden=false;w.innerHTML='<b>仮説段階</b><span>心理条件に「方向性」（統計の裏づけなし）が含まれます。生成時はその障壁を持つ人として集めています。本調査前の仮説出し用です。</span>'}else w.hidden=true;
+  // 並び替え・検索
+  shown=matches.slice();
+  if(S.q){const q=S.q;shown=shown.filter(p=>p.name.includes(q))}
+  const by=S.sort;if(by==="inc_desc")shown.sort((a,b)=>b.basic.年収万円-a.basic.年収万円);
+  else if(by==="inc_asc")shown.sort((a,b)=>a.basic.年収万円-b.basic.年収万円);
+  else if(by==="age_asc")shown.sort((a,b)=>G.age_order.indexOf(a.basic.年齢帯)-G.age_order.indexOf(b.basic.年齢帯));
+  else if(by==="age_desc")shown.sort((a,b)=>G.age_order.indexOf(b.basic.年齢帯)-G.age_order.indexOf(a.basic.年齢帯));
+  else if(by==="name")shown.sort((a,b)=>a.name.localeCompare(b.name,"ja"));
+  renderTray();
+  const cards=document.getElementById("cards");cards.className="cards"+(S.compact?" compact":"");cards.innerHTML="";
+  shown.slice(0,showCap).forEach(p=>cards.appendChild(cardEl(p)));
+  if(!shown.length)cards.innerHTML='<p class="empty">'+(S.q?"その氏名の生成はありません。":"この組み合わせは生成できません。")+'</p>';
+  const more=document.getElementById("more");more.innerHTML="";
+  if(shown.length>showCap){const b=document.createElement("button");b.className="btn";b.textContent=`さらに表示（残り${shown.length-showCap}名）`;b.onclick=()=>{showCap+=60;render()};
+    more.appendChild(b);const s=document.createElement("span");s.textContent=`${Math.min(showCap,shown.length)} / ${shown.length}名を表示`;more.appendChild(s)}
+  document.getElementById("sel-count").textContent=S.selected.size;
+  renderCompare();updateStudio();
+}
+
+function renderSkew(list){const el=document.getElementById("skew");if(!list.length){el.className="skew none";return}
+  const fields=["年齢帯","年収五分位","業種","都道府県"];let best=[];
+  fields.forEach(f=>{const s=segDist(list,f),n=natDist(f);for(const k in s){if(s[k]<0.12)continue;const r=s[k]/(n[k]||1e-4);if(r>=1.4)best.push({f,k,r,p:s[k]})}});
+  best.sort((a,b)=>b.r-a.r);best=best.slice(0,2);
+  if(!best.length){el.className="skew none";return}
+  el.className="skew";el.innerHTML="この層の特徴："+best.map(b=>`<b>${b.k}</b>が全国の約${b.r.toFixed(1)}倍`).join("、");
+}
+function renderGroupCounts(){["basic","detail","psych"].forEach(g=>{const el=document.querySelector(`.fgroup[data-g="${g}"] .cnt`);const n=activeCount(g);el.hidden=!n;el.textContent=n})}
+
+function renderActive(){const el=document.getElementById("active-cond");el.innerHTML="";const parts=[];
+  for(const g of["basic","detail"])for(const f in S[g])S[g][f].forEach(v=>parts.push({g,f,v,cls:""}));
+  S.psych.forEach(id=>parts.push({g:"psych",id,v:itemLabel(id),cls:isHyp(id)?"pc":""}));
+  if(!parts.length){el.className="active-empty";el.textContent="条件なし（全国全体）。左の項目を押して絞り込みます。";return}
+  el.className="active-cond";
+  parts.forEach(p=>{const c=document.createElement("span");c.className="cond "+p.cls;
+    c.innerHTML=(p.g==="psych"?"":`<b>${FLABEL[p.f]||p.f}</b> `)+p.v+' <span class="x">×</span>';
+    c.onclick=()=>{if(p.g==="psych"){S.psych.delete(p.id);const cb=document.querySelector(`#f-psych input[data-id="${p.id}"]`);if(cb)cb.checked=false}
+      else{S[p.g][p.f].delete(p.v);if(!S[p.g][p.f].size)delete S[p.g][p.f];syncChips(p.g,p.f)}applyFilters()};
+    el.appendChild(c)})}
+
+function distBars(list,field,topN){const seg=segDist(list,field),nat=natDist(field);
+  let keys=Object.keys(seg);if(ORD[field])keys.sort((a,b)=>ORD[field].indexOf(a)-ORD[field].indexOf(b));else keys.sort((a,b)=>seg[b]-seg[a]);
+  if(topN)keys=keys.slice(0,topN);const max=Math.max(0.01,...keys.map(k=>seg[k]));
+  return keys.map(k=>{const basePos=Math.min(100,(nat[k]||0)/max*100);
+    return `<div class="bar-row"><span class="bl" title="${k}">${field==="世帯人員"?k+"人":k}</span><span class="bar-track"><i style="width:${seg[k]/max*100}%"></i><span class="base" style="left:${basePos}%" title="全国平均 ${Math.round((nat[k]||0)*100)}%"></span></span><span class="bv">${Math.round(seg[k]*100)}%<small> /${Math.round((nat[k]||0)*100)}</small></span></div>`}).join("")}
+function renderCompo(list){const g=document.getElementById("compo");if(!list.length){g.innerHTML='<p class="empty" style="grid-column:1/-1">—</p>';return}
+  const axes=[["年代","年齢帯",0],["年収層","年収五分位",0],["性別","性別",0],["世帯人数","世帯人員",0],["地域ブロック","_region",0],["業種 上位","業種",6]];
+  g.innerHTML=axes.map(([t,f,top])=>`<div class="dist"><h3>${t}<small style="color:var(--faint)">実% /全国</small></h3>${f==="_region"?regionBars(list):distBars(list,f,top)}</div>`).join("");}
+function regionBars(list){const seg={},nat={};list.forEach(p=>{const r=PREF_REGION[p.basic.都道府県]||"他";seg[r]=(seg[r]||0)+1});
+  basePool.forEach(p=>{const r=PREF_REGION[p.basic.都道府県]||"他";nat[r]=(nat[r]||0)+1});
+  const order=Object.keys(REGION);const t=list.length||1,tn=basePool.length;
+  const sp={},np={};order.forEach(r=>{sp[r]=(seg[r]||0)/t;np[r]=(nat[r]||0)/tn});const max=Math.max(0.01,...order.map(r=>sp[r]));
+  return order.filter(r=>sp[r]>0).map(r=>`<div class="bar-row"><span class="bl" title="${r}">${r}</span><span class="bar-track"><i style="width:${sp[r]/max*100}%"></i><span class="base" style="left:${Math.min(100,np[r]/max*100)}%"></span></span><span class="bv">${Math.round(sp[r]*100)}%<small> /${Math.round(np[r]*100)}</small></span></div>`).join("")}
+
+function updateSteps(){let cur=1;if(S.selected.size)cur=2;if(S.mode==="壁打ち"&&S.transcript.length)cur=3;
+  document.querySelectorAll("#steps li").forEach(li=>{const s=+li.dataset.step;li.dataset.on=s<cur?"done":(s===cur?"now":"")})}
+
+function avatar(p){const col=p.basic.性別==="男性"?"var(--male)":"var(--female)";const init=(p.name.split(" ")[1]||p.name)[0]||"・";return `<span class="ava" style="background:${col}">${init}</span>`}
+function cardEl(p){const c=document.createElement("div");c.className="card"+(S.selected.has(p.id)?" on":"");const b=p.basic,d=p.detail;
+  const cb=document.createElement("input");cb.type="checkbox";cb.className="chk";cb.checked=S.selected.has(p.id);cb.setAttribute("aria-label",p.name+"を選択");
+  cb.onclick=e=>{e.stopPropagation();toggleSel(p.id)};
+  const trueP=allItems().filter(it=>p.psych[it.id]);
+  const tagHtml=trueP.slice(0,4).map(it=>`<span class="tag ${it.tier==="接地"?"g":"p"}">${it.label.length>9?it.label.slice(0,8)+"…":it.label}</span>`).join("");
+  c.innerHTML=`<div class="hd">${avatar(p)}<div><div class="nm">${p.name}</div><div class="meta">${b.性別}・${b.年齢帯}・${b.都道府県}</div></div></div>
+    <div class="meta meta2">${b.業種}／年収${b.年収万円}万・${b.学歴}・${b.配偶}・世帯${b.世帯人員}人${b.子==="あり"?"・子あり":""}</div>
+    <div class="tags">${tagHtml||'<span class="tag">障壁フラグなし</span>'}</div>
+    <details class="det"><summary>詳細</summary><div class="nar">住居：${d.住居}／車：${d.車}台／ペット：${d.ペット}／資産：${d.金融資産}／保険：${(d.保険||[]).join("・")}<br>ネット：${d.ネット頻度}／EC割合：${d.EC}／SNS：${(d.SNS||[]).join("・")}／投資：${(d.投資||[]).join("・")}</div></details>`;
+  c.prepend(cb);c.onclick=()=>toggleSel(p.id);return c}
+function toggleSel(id){S.selected.has(id)?S.selected.delete(id):S.selected.add(id);render()}
+
+function renderTray(){const el=document.getElementById("tray");const sel=[...S.selected];el.innerHTML="";
+  if(!sel.length)return;sel.forEach(id=>{const p=matches.find(x=>x.id===id);if(!p)return;const t=document.createElement("span");t.className="t";
+    t.innerHTML=`${p.name} <span class="x">×</span>`;t.onclick=()=>toggleSel(id);el.appendChild(t)})}
+
+function renderCompare(){const el=document.getElementById("compare");const sel=[...S.selected].map(id=>matches.find(p=>p.id===id)).filter(Boolean);
+  if(sel.length<2){el.hidden=true;return}el.hidden=false;
+  const rows=[["性別",p=>p.basic.性別],["年代",p=>p.basic.年齢帯],["地域",p=>p.basic.都道府県],["年収",p=>p.basic.年収万円+"万"],["学歴",p=>p.basic.学歴],["業種",p=>p.basic.業種],["世帯",p=>p.basic.世帯人員+"人"+(p.basic.子==="あり"?"・子":"")],["住居",p=>p.detail.住居],["車",p=>p.detail.車+"台"],["資産",p=>p.detail.金融資産],["主な障壁",p=>{const t=allItems().filter(it=>p.psych[it.id]);return t.length?t[0].label:"—"}]];
+  el.innerHTML=`<h2>選択${sel.length}名の比較</h2><table class="ctable"><thead><tr><th>項目</th>${sel.map(p=>`<td>${p.name}</td>`).join("")}</tr></thead><tbody>${rows.map(([lab,fn])=>`<tr><th>${lab}</th>${sel.map(p=>`<td>${fn(p)}</td>`).join("")}</tr>`).join("")}</tbody></table>`}
+
+function selPersonas(max){return [...S.selected].map(id=>matches.find(p=>p.id===id)).filter(Boolean).slice(0,max)}
+function updateStudio(){
+  renderMethodTabs();renderMethodMeta();
+  ["survey","interview","observation","ethnography"].forEach(m=>{const e=document.getElementById("pane-"+m);if(e)e.hidden=(S.method!==m)});
+  const ok=!!window.__sample;
+  if(!ok){const msg="この表示では対話・生成は無効です。右上のメニューからアーティファクトを単独（全画面）で開くと動きます。";
+    ["svy-note","obs-note","eth-note"].forEach(id=>{const e=document.getElementById(id);if(e&&!e.textContent)e.textContent=msg})}
+  if(S.method==="interview")updateInterview(ok);
+  updateSteps();
+}
+function renderMethodTabs(){const el=document.getElementById("method-tabs");el.innerHTML="";
+  METHODS.forEach((m,i)=>{const b=document.createElement("button");b.className="mtab";b.setAttribute("role","tab");b.setAttribute("aria-selected",S.method===m.id);
+    b.innerHTML=`<div class="mt-d">深さ${i+1}</div><div class="mt-l">${m.label}</div><span class="mt-t ${m.tcls}">${m.tier}</span>`;
+    b.onclick=()=>setMethod(m.id);el.appendChild(b)})}
+function renderMethodMeta(){const m=METHODS.find(x=>x.id===S.method);const el=document.getElementById("method-meta");const sc=S.selected.size;
+  el.innerHTML=`<div class="mm-desc">${m.desc}</div><div class="ggrad"><span class="gdot" style="left:${m.pos}%"></span></div>
+    <div class="gax"><span>浅い・高信頼（接地）</span><span>深い・仮説（要実査）</span></div>
+    <div style="font-size:.73rem;font-weight:600;color:${sc?'var(--ground)':'var(--hyp)'}">対象者 ${sc}名を選択中${sc?`。すぐ下の「${m.label}」欄で実施できます。`:'。下の一覧でチェックを入れて選んでください。'}</div>`}
+function setMethod(m){S.method=m;saveState();render()}
+function updateInterview(ok){const sel=selPersonas(99);
+  document.getElementById("chat-who").textContent=sel.length?("相手："+sel.slice(0,8).map(p=>p.name).join("、")+(sel.length>8?` ほか${sel.length-8}名`:"")):"対象者を選んでください。";
+  document.getElementById("chat-title").textContent=S.mode==="壁打ち"?"インタビュー（1対1）":"グループインタビュー";
+  const note=document.getElementById("chat-note");
+  if(!ok)note.textContent="この環境では対話機能は使えません（claude.aiのアーティファクト版で動きます）。";
+  else if(!note.textContent)note.textContent="選んだ全員が、それぞれの立場で答えます（最大8名）。"}
+async function llmEach(persons,buildPrompt,onEach){await Promise.all(persons.map(async(p,i)=>{
+  try{const r=await window.__sample(buildPrompt(p,i),{cache:false,modelTier:"quick"});onEach(p,i,(r.text||"").trim())}catch(e){onEach(p,i,"")}}))}
+function lastSaid(id){const p=matches.find(x=>x.id===id);if(!p)return null;
+  for(let i=S.transcript.length-1;i>=0;i--){const a=S.transcript[i].answers.find(a=>a.name===p.name&&!a.load);if(a)return a.text}return null}
+
+const SVY_OPTS={scale5:["とてもそう思う","そう思う","どちらでもない","そう思わない","全くそう思わない"],
+  price:["高い","やや高い","妥当","やや安い","安い"],intent:["買う","たぶん買う","検討する","たぶん買わない","買わない"],yn:["はい","いいえ"]};
+async function runSurvey(){const q=document.getElementById("svy-q").value.trim();if(!q){toast("設問を入力してください");return}if(!window.__sample){toast("この表示ではアンケートを実行できません。アーティファクトを単独で開いてください");return}
+  const persons=selPersonas(40);if(!persons.length){toast("先に対象者を選んでください");return}
+  const type=document.getElementById("svy-type").value,opts=SVY_OPTS[type];
+  const amount=+document.getElementById("svy-amount").value||0,item=document.getElementById("svy-item").value;
+  const btn=document.getElementById("svy-run");btn.disabled=true;document.getElementById("svy-note").textContent="集計中…";
+  const counts=opts.map(()=>0),byInc={};["I","II","III","IV","V"].forEach(k=>byInc[k]=opts.map(()=>0));
+  const optList=opts.map((o,i)=>`${i+1}. ${o}`).join(" ／ ");
+  await llmEach(persons,(p)=>`あなたは次の日本人消費者です。設問に、最も近いものを選択肢の番号だけで答えてください（番号のみ、説明不要）。あなた固有の事情で判断します。
+【あなた】
+${profileText(p)}
+【設問】${q}
+【選択肢】${optList}
+番号：`,(p,i,text)=>{const mt=text.match(/[1-9]/);let idx=mt?(+mt[0]-1):-1;if(idx<0||idx>=opts.length)idx=Math.floor(opts.length/2);
+    counts[idx]++;const qt=p.basic.年収五分位;if(byInc[qt])byInc[qt][idx]++});
+  S.svyRes={q,type,opts,counts,byInc,n:persons.length,amount,item};btn.disabled=false;renderSurveyRes()}
+function renderSurveyRes(){const r=S.svyRes;if(!r)return;const el=document.getElementById("svy-res");const max=Math.max(1,...r.counts);
+  let html=`<div><div class="svy-q">${r.q}（n=${r.n}）</div>`+r.opts.map((o,i)=>`<div class="svy-opt"><span class="bl">${o}</span><span class="bar"><i style="width:${r.counts[i]/max*100}%"></i></span><span class="bv">${Math.round(r.counts[i]/r.n*100)}%</span></div>`).join("")+`</div>`;
+  if(r.type==="price"){const hi=q=>{const c=r.byInc[q],n=c.reduce((a,b)=>a+b,0);return n?Math.round((c[0]+c[1])/n*100):null};
+    const lo=hi("I"),up=hi("V");if(lo!=null&&up!=null)html+=`<div class="svy-ground">価格感は年収層で分かれます。低年収層（I）で「高い〜やや高い」が約${lo}%、高年収層（V）で約${up}%。年収五分位は1次接地のため、この差は裏づけのある傾向です。</div>`}
+  if(r.amount&&r.item){const PB=G.price_benchmark;let tot=0,ws=0,lo=Infinity,hi=0;
+    ["I","II","III","IV","V"].forEach(q=>{const n=r.byInc[q].reduce((a,b)=>a+b,0);if(!n)return;const m=PB.quintile_consumption[q]*PB.item_share[r.item];tot+=m*n;ws+=n;lo=Math.min(lo,m);hi=Math.max(hi,m)});
+    if(ws){const avg=tot/ws,pct=Math.round(r.amount/avg*100);
+    html+=`<div class="svy-ground">対象者の【${r.item}】推定月支出は平均 約${Math.round(avg).toLocaleString()}円（五分位で ${Math.round(lo).toLocaleString()}〜${Math.round(hi).toLocaleString()}円）。提示価格 ${r.amount.toLocaleString()}円は月支出の約${pct}%にあたります。〔全国家計構造調査2024・五分位別消費支出×費目構成比の近似〕</div>`}}
+  el.innerHTML=html;document.getElementById("svy-note").textContent="各対象者が自分の立場で回答。価格を入れると家計調査の費目支出と突き合わせます。"}
+
+async function runObservation(){const scene=document.getElementById("obs-scene").value.trim()||"ふだんの買い物";
+  if(!window.__sample){toast("この表示では観察を実行できません。アーティファクトを単独で開いてください");return}const persons=selPersonas(6);if(!persons.length){toast("先に対象者を選んでください");return}
+  const btn=document.getElementById("obs-run");btn.disabled=true;const res=document.getElementById("obs-res");res.innerHTML="";S.obsRes={};
+  persons.forEach(p=>{const d=document.createElement("div");d.className="obs-card";d.id="obs-"+p.id;
+    d.innerHTML=`<div class="nm">${p.name} <span class="tag">${p.basic.年齢帯}・${p.basic.都道府県}</span></div><div class="obs-steps load">観察中…</div>`;res.appendChild(d)});
+  await llmEach(persons,(p)=>`次の日本人消費者の行動を観察し記録します。会話や心情ではなく、観察された行動だけを時系列で3〜5ステップ、各行「〜する」の短い行動描写で書いてください。接地した行動データと整合させ、新たな事実は作りません。
+【行動データ】EC購入割合=${p.detail.EC}／ネット=${p.detail.ネット頻度}／スマホ=${p.detail.スマホ}／SNS=${(p.detail.SNS||[]).join("・")}／クレカ=${p.detail.クレカ}枚／車=${p.detail.車}台
+心理行動フラグ：${allItems().filter(it=>p.psych[it.id]).map(it=>it.label).join("、")||"特になし"}
+【場面】${scene}
+行動（番号付き3〜5ステップ、行動描写のみ）：`,(p,i,text)=>{const card=document.getElementById("obs-"+p.id);const steps=text||"（観察を取得できませんでした）";
+    const said=lastSaid(p.id);S.obsRes[p.id]={steps,said};const se=card.querySelector(".obs-steps");se.classList.remove("load");se.textContent=steps;
+    if(said)detectGap(p,said,steps,card)});
+  btn.disabled=false;document.getElementById("obs-note").textContent="発言ではなく接地行動データからの再構成です。実際の観察ではなく仮説として扱い、実地で確認してください。"}
+async function detectGap(p,said,steps,card){try{const r=await window.__sample(`ある人がインタビューで「${said}」と語りました。一方、観察された行動は次の通りです。
+${steps}
+発言と行動に矛盾・ズレがあれば1文で指摘してください。なければ「一致」とだけ答えてください。`,{cache:false,modelTier:"quick"});
+  const g=(r.text||"").trim();if(g&&!g.startsWith("一致")){const d=document.createElement("div");d.className="gap-flag";d.innerHTML=`<b>言動ギャップ（仮説）：</b>${g}`;card.appendChild(d)}}catch(e){}}
+
+async function runEthnography(){const theme=document.getElementById("eth-theme").value.trim()||"ふだんの暮らし";
+  if(!window.__sample){toast("この表示ではエスノを実行できません。アーティファクトを単独で開いてください");return}const persons=selPersonas(6);if(!persons.length){toast("先に対象者を選んでください");return}
+  const btn=document.getElementById("eth-run");btn.disabled=true;const res=document.getElementById("eth-res");res.innerHTML="";S.ethRes={};
+  persons.forEach(p=>{const d=document.createElement("div");d.className="eth-card";d.id="eth-"+p.id;
+    d.innerHTML=`<div class="nm">${p.name} <span class="tag">${p.basic.世帯人員}人・${p.basic.配偶}</span></div><div class="eth-body load">入り込み中…</div>`;res.appendChild(d)});
+  await llmEach(persons,(p)=>`次の日本人の生活文脈に入り込み記述します。売り込みや評価はせず、この人の平日の暮らしの中でテーマがどの場面に現れ、どの場面に現れないかを生活の具体から4〜6文で描いてください。属性に整合させ、新たな事実は作りません。
+【生活文脈】
+${profileText(p)}
+【テーマ】${theme}
+生活文脈の記述（4〜6文、仮説）：`,(p,i,text)=>{const card=document.getElementById("eth-"+p.id);S.ethRes[p.id]=text;
+    const b=card.querySelector(".eth-body");b.classList.remove("load");b.textContent=text||"（取得できませんでした）"});
+  btn.disabled=false;document.getElementById("eth-note").textContent="生活ナラティブは接地が最も薄い層です。方向性のみ（仮説）。本調査の設計材料としてお使いください。"}
+function profileText(p){const b=p.basic,d=p.detail;const psy=allItems().filter(it=>p.psych[it.id]).map(it=>it.label);
+  return `氏名:${p.name}／${b.性別}・${b.年齢帯}・${b.都道府県}
+世帯:${b.世帯人員}人・${b.配偶}${b.子==="あり"?"・子あり":"・子なし"}・${b.共働き||""}
+経済:世帯年収${b.年収万円}万円(五分位${b.年収五分位})・${b.学歴}・${b.業種}・${b.職業}
+生活:住居=${d.住居}／車=${d.車}台／ペット=${d.ペット}／金融資産=${d.金融資産}／保険=${(d.保険||[]).join("・")}／投資=${(d.投資||[]).join("・")}
+デジタル:ネット=${d.ネット頻度}／EC購入割合=${d.EC}／スマホ=${d.スマホ}／SNS=${(d.SNS||[]).join("・")}／クレカ=${d.クレカ}枚
+自覚する心理的障壁:${psy.length?psy.join("、"):"特になし"}`}
+async function ask(){const qEl=document.getElementById("q");const q=qEl.value.trim();if(!q){toast("質問を入力してください");return}if(!window.__sample){toast("この表示では対話できません。アーティファクトを単独で開いてください");return}
+  const allSel=[...S.selected].map(id=>matches.find(p=>p.id===id)).filter(Boolean);if(!allSel.length){toast("先に対象者を選んでください");return}
+  const sel=allSel.slice(0,8),over=allSel.length-sel.length;qEl.value="";document.getElementById("send").disabled=true;
+  const turn={q,answers:sel.map(p=>({name:p.name,age:p.basic.年齢帯,job:p.basic.業種,text:"…考え中",load:true}))};
+  S.transcript.push(turn);renderTranscript();updateSteps();
+  const hist=S.transcript.slice(-4,-1).map(t=>"Q:"+t.q).join("\n");
+  await Promise.all(sel.map(async(p,i)=>{const prompt=`あなたは次の日本人消費者になりきって、インタビューの質問に答えます。一人称で、自然な話し言葉で、2〜4文で簡潔に。設定にない事実は作らず、プロフィールと生活実感に沿って、あなた固有の事情から具体的に答えてください。他の人と同じ建前や一般論は避けます。
+
+【あなた】
+${profileText(p)}
+${hist?("\n【これまでの質問】\n"+hist):""}
+
+【質問】「${q}」
+
+あなたの答え（${p.name}として、2〜4文）：`;
+    try{const r=await window.__sample(prompt,{cache:false,modelTier:"quick"});turn.answers[i].text=(r.text||"").trim()||"（うまく言葉が出てこない）"}
+    catch(e){turn.answers[i].text="（回答を取得できませんでした）"}turn.answers[i].load=false;renderTranscript()}));
+  document.getElementById("send").disabled=false;
+  document.getElementById("chat-note").textContent=over>0?`選択${allSel.length}名のうち先頭8名が回答。壁打ちは少人数向きです。`:"選んだ全員が、それぞれの立場で答えます（最大8名）。"}
+function renderTranscript(){const t=document.getElementById("transcript");t.innerHTML="";
+  S.transcript.forEach(turn=>{const d=document.createElement("div");d.className="qa";
+    d.innerHTML=`<div class="q">Q. ${turn.q}</div><div class="ans">`+turn.answers.map(a=>`<div class="bubble${a.load?" load":""}"><div class="bn">${a.name} <small>${a.age}・${a.job}</small></div>${a.text}</div>`).join("")+`</div>`;
+    t.appendChild(d)})}
+
+function setMode(m){S.mode=m;document.getElementById("m-hearing").setAttribute("aria-pressed",m==="壁打ち");document.getElementById("m-gi").setAttribute("aria-pressed",m!=="壁打ち");saveState();render()}
+function applyPreset(name){const p=PRESETS[name];if(!p)return;S.basic={};S.detail={};S.psych.clear();
+  for(const f in p.basic)S.basic[f]=new Set(p.basic[f]);for(const f in p.detail)S.detail[f]=new Set(p.detail[f]);
+  syncAllChips();document.querySelectorAll("#f-psych input").forEach(c=>c.checked=false);applyFilters();toast("プリセット適用："+name)}
+function clearAll(){S.basic={};S.detail={};S.psych.clear();syncAllChips();document.querySelectorAll("#f-psych input").forEach(c=>c.checked=false);document.getElementById("preset").value="";applyFilters()}
+function copySeg(){const lines=["【スクリーニング条件】"];const parts=[];
+  for(const g of["basic","detail"])for(const f in S[g])parts.push(`${FLABEL[f]||f}：${[...S[g][f]].join("・")}`);
+  S.psych.forEach(id=>parts.push("心理："+itemLabel(id)+(isHyp(id)?"（方向性）":"（接地）")));
+  lines.push(parts.length?parts.join("\n"):"条件なし（全国全体）");
+  let m=0;for(const p of basePool)if(matchP(p))m++;lines.push(`\n【推定規模】約${fmtMan(m/basePool.length*ADULTS)}（全国20歳以上の約${(m/basePool.length*100).toFixed(2)}%）`);
+  ["年齢帯","年収五分位","業種"].forEach(f=>{const s=segDist(matches,f);const top=Object.entries(s).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} ${Math.round(v*100)}%`).join("、");lines.push(`構成(${FLABEL[f]})：${top}`)});
+  const txt=lines.join("\n");navigator.clipboard?.writeText(txt).then(()=>toast("条件と構成をコピーしました")).catch(()=>toast("コピーできませんでした"))}
+
+function saveState(){try{ls("f",{basic:ser(S.basic),detail:ser(S.detail),psych:[...S.psych],method:S.method,mode:S.mode,compact:S.compact,open:S.open,sort:S.sort})}catch(e){}}
+function ser(o){const r={};for(const f in o)r[f]=[...o[f]];return r}
+function loadState(){const f=ls("f");if(!f)return;try{for(const f2 in f.basic||{})S.basic[f2]=new Set(f.basic[f2]);for(const f2 in f.detail||{})S.detail[f2]=new Set(f.detail[f2]);
+  (f.psych||[]).forEach(id=>S.psych.add(id));S.mode=f.mode||"壁打ち";S.method=f.method||"interview";S.compact=!!f.compact;S.sort=f.sort||"";if(f.open)S.open=f.open}catch(e){}}
+
+function wire(){
+  document.getElementById("m-hearing").onclick=()=>setMode("壁打ち");
+  document.getElementById("m-gi").onclick=()=>setMode("グループインタビュー");
+  document.getElementById("regen").onclick=()=>{seed=(seed*1103515245+12345)>>>0;applyFilters();toast("別の人を生成しました")};
+  document.getElementById("sel-all").onclick=()=>{shown.slice(0,showCap).forEach(p=>S.selected.add(p.id));render()};
+  document.getElementById("sel-none").onclick=()=>{S.selected.clear();render()};
+  document.getElementById("send").onclick=ask;
+  document.getElementById("svy-run").onclick=runSurvey;
+  document.getElementById("obs-run").onclick=runObservation;
+  document.getElementById("eth-run").onclick=runEthnography;
+  document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))ask()});
+  document.getElementById("preset").onchange=e=>{if(e.target.value)applyPreset(e.target.value)};
+  document.getElementById("clear-all").onclick=clearAll;
+  document.getElementById("copy-seg").onclick=copySeg;
+  document.getElementById("name-search").oninput=e=>{S.q=e.target.value.trim();showCap=60;render()};
+  document.getElementById("sort").onchange=e=>{S.sort=e.target.value;saveState();render()};
+  document.getElementById("density").onclick=e=>{S.compact=!S.compact;e.target.textContent=S.compact?"標準表示":"コンパクト";saveState();render()};
+  document.getElementById("ch-clear").onclick=()=>{S.transcript=[];renderTranscript();updateSteps()};
+  document.getElementById("ch-copy").onclick=()=>{const t=S.transcript.map(tn=>"Q. "+tn.q+"\n"+tn.answers.map(a=>`${a.name}：${a.text}`).join("\n")).join("\n\n");navigator.clipboard?.writeText(t).then(()=>toast("会話をコピーしました"))};
+  document.querySelectorAll("[data-reset]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();const g=b.dataset.reset;
+    if(g==="psych"){S.psych.clear();document.querySelectorAll("#f-psych input").forEach(c=>c.checked=false)}else{S[g]={};document.querySelectorAll(`#f-${g} .chip`).forEach(c=>c.setAttribute("aria-pressed","false"))}applyFilters()});
+  document.querySelectorAll(".fgroup .fg-title .l").forEach(t=>{t.onclick=()=>{const fg=t.closest(".fgroup");const g=fg.dataset.g;fg.classList.toggle("closed");S.open[g]=!fg.classList.contains("closed");saveState()}});
+  document.querySelectorAll("#steps li").forEach(li=>li.onclick=()=>{const el=document.getElementById(li.dataset.go);el&&el.scrollIntoView({behavior:"smooth",block:"start"})});
+}
+
+function boot(){const rng=PG.mulberry32(999);basePool=[];for(let i=0;i<BASE_N;i++){const p=PG.genOne(G,{},rng);PG.assignPsych(G,p,rng);basePool.push(p)}
+  loadState();buildFilters();wire();
+  const _st=document.querySelector(".studio");if(_st)_st.insertAdjacentElement("afterend",document.getElementById("method-panel"));
+  // 復元反映
+  syncAllChips();S.psych.forEach(id=>{const cb=document.querySelector(`#f-psych input[data-id="${id}"]`);if(cb)cb.checked=true});
+  document.getElementById("density").textContent=S.compact?"標準表示":"コンパクト";document.getElementById("sort").value=S.sort;
+  setMode(S.mode);
+  ["basic","detail","psych"].forEach(g=>{if(S.open&&S.open[g]===false)document.querySelector(`.fgroup[data-g="${g}"]`).classList.add("closed")});
+  if(!ls("helpseen")){document.getElementById("help").hidden=false}
+  document.getElementById("help-x").onclick=()=>{document.getElementById("help").hidden=true;ls("helpseen",1)};
+  applyFilters();
+  if(window.claude&&claude.use){claude.use("sample").then(s=>{window.__sample=s;updateStudio()}).catch(()=>{})}
+}
+boot();
+</script>

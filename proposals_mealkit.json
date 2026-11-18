@@ -1,0 +1,10 @@
+{
+  "category":"ミールキット",
+  "cross_item":"外食",
+  "_anchor_note":"ミールキットは家計調査に固有品目がない。外食（中食・手軽さの代替）を主基準に接地。食料基準の感度は別途確認。",
+  "proposals":[
+    {"id":"MK1","name":"ライト（週2回・2人前）","price_monthly":6000,"benefit":"献立と買い物の手間を減らす","message":"週2回、考えずに作れる","channel":"宅配ミールキット","benefit_fit":1.0},
+    {"id":"MK2","name":"スタンダード（週3-4回）","price_monthly":12000,"benefit":"平日の夕食をまるごと任せる","message":"平日の夕飯、もう悩まない","channel":"宅配ミールキット","benefit_fit":1.0},
+    {"id":"MK3","name":"プレミアム（有機・ほぼ毎日）","price_monthly":24000,"benefit":"有機食材で毎日の食卓を上質に","message":"毎日の食卓を、こだわりの食材で","channel":"宅配ミールキット","benefit_fit":1.0}
+  ]
+}

@@ -1,0 +1,3 @@
+{"category":"被服","cross_item":"被服及び履物","proposals":[
+{"id":"AP1","name":"洋服サブスク ベーシック","price_monthly":3900,"benefit":"毎月数点を定額で着回し","message":"選ぶ手間なく、月3,900円で着回し","channel":"ファッションサブスクアプリ","benefit_fit":1.0},
+{"id":"AP2","name":"スタイリスト付きプラン","price_monthly":12000,"benefit":"プロが選ぶ上質な一式","message":"あなた専属のスタイリスト","channel":"スタイリング定額サービス","benefit_fit":1.0}]}
